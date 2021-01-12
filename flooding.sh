@@ -36,18 +36,17 @@ then
     exit
 fi
 
-pktNum=$(echo "($rate * 10000 * $floodPeriod / 500000 + 1) * 500000" | bc)
-traceName="SYN_flooding_${pktNum}_${pktLen}_${dstIP}_${dstPort}.pcap"
+floodPktNum=$(echo "$rate * 1000000 * $floodPeriod / 8 / $pktLen" | bc)
+nonFloodPktNum=$(echo "$rate * 10000 * $floodPeriod / 8 / $pktLen" | bc)
+traceName="SYN_flooding_${floodPktNum}_${nonFloodPktNum}_${pktLen}_${dstIP}_${dstPort}.pcap"
 if [ ! -e $traceName ]
 then
-    ./traceGen.py -n $pktNum -l $pktLen -a $dstIP -p $dstPort -o $traceName
+    ./traceGen.py --pktNum=$floodPktNum --pktLen=$pktLen \
+    --srcMac=14:18:77:51:43:06 --dstMac=14:18:77:54:2e:4c \
+    --srcIP=101.6.30.132 --dstIP=$dstIP --srcPort=$dstPort --dstPort=80 \
+    --nonPulsePktNum=$nonFloodPktNum --nonPulsePktLen=1000 \
+    --nonPulsePktDstMac=14:18:77:53:4e:ef --nonPulsePktDstIP=101.6.30.137 --nonPulsePktDstPort=80 \
+    --outputFile=flood.pcap 
 fi
 
-while true
-do
-    tcpreplay -M $rate -i $interface $traceName &
-    pid=$!
-    sleep $floodPeriod
-    kill -9 $pid
-    sleep $restPeriod
-done
+tcpreplay -i $interface -M 1000 -K -l 10000 $traceName
