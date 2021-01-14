@@ -147,6 +147,7 @@ def generateTrace(pktNum, pktLen, srcMac, dstMac, srcIP, dstIP, srcPort, dstPort
                   nonPulsePktNum=None, nonPulsePktLen=None, nonPulsePktDstMac=None,
                   nonPulsePktDstIP=None, nonPulsePktDstPort=None):
     seedPkt = pickle.loads(pktPickleData)
+    seedPktLen = len(seedPkt)
 
     writer = PcapWriter(outPutFileName)
 
@@ -157,7 +158,7 @@ def generateTrace(pktNum, pktLen, srcMac, dstMac, srcIP, dstIP, srcPort, dstPort
     pkt[IP].dst = dstIP
     pkt[TCP].sport = srcPort
     pkt[TCP].dport = dstPort
-    pkt[Raw].load = (pktLen - len(pkt)) * "\x00"
+    pkt[Raw].load = (pktLen - seedPktLen) * "\x00"
     pkt[IP].len = pktLen - 14
     pkt.wirelen = pktLen
     """for i in range(pktNum):
@@ -180,7 +181,7 @@ def generateTrace(pktNum, pktLen, srcMac, dstMac, srcIP, dstIP, srcPort, dstPort
         pkt[Ether].dst = nonPulsePktDstMac
         pkt[IP].dst = nonPulsePktDstIP
         pkt[TCP].dport = nonPulsePktDstPort
-        pkt[Raw].load = (nonPulsePktLen - len(pkt)) * "\x00"
+        pkt[Raw].load = (nonPulsePktLen - seedPktLen) * "\x00"
         pkt[IP].len = nonPulsePktLen - 14
 
         for i in range(nonPulsePktNum):
@@ -193,5 +194,5 @@ def main():
 
     generateTrace(*ret)
 
-sys.argv = "./traceGen.py --pktNum=100 --pktLen=1000 --srcMac=14:18:77:51:43:06 --dstMac=14:18:77:54:2e:4c --srcIP=101.6.30.132 --dstIP=101.6.30.136 --srcPort=12345 --dstPort=80 --nonPulsePktNum=900 --nonPulsePktLen=1000 --nonPulsePktDstMac=14:18:77:53:4e:ef --nonPulsePktDstIP=101.6.30.137 --nonPulsePktDstPort=80 --outputFile=asd.pcap".split(" ")
+# sys.argv = "./traceGen.py --pktNum=100 --pktLen=1000 --srcMac=14:18:77:51:43:06 --dstMac=14:18:77:54:2e:4c --srcIP=101.6.30.132 --dstIP=101.6.30.136 --srcPort=12345 --dstPort=80 --nonPulsePktNum=900 --nonPulsePktLen=1000 --nonPulsePktDstMac=14:18:77:53:4e:ef --nonPulsePktDstIP=101.6.30.137 --nonPulsePktDstPort=80 --outputFile=asd.pcap".split(" ")
 main()
