@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
     for oneFlow in results:
         print(oneFlow)
-        rowFormat = "{time:{width}}|{cwnd:6}"
+        rowFormat = "{time:{width}}|{cwnd:>6}"
         width = 21 if absTime else len(str(sampleTimes)) + 2
         print(rowFormat.format(time="time", width=width, cwnd="cwnd"))
         print((width + 7) * '-')
