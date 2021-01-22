@@ -10,6 +10,7 @@ interval = 10
 monitorRules = []
 sampleTimes = None
 results = {}
+absTime = False
 
 pseudoIPPattern = "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
 flowInfoPattern = "(%s)(:[0-9]+)?((-%s)(:[0-9]+)?)?" % (pseudoIPPattern, pseudoIPPattern)
@@ -17,8 +18,8 @@ flowInfoParseErrorInfo = """plz input --flowinfo in the format of IP1[:port1][-I
 --flowinfo=10.0.0.1:1024-10.0.0.2:22, your input is %s"""
 
 def parseArgs(argList):
-    global interval, monitorRules, sampleTimes
-    paramList = ["interval=", "flowinfo=", "times="]
+    global interval, monitorRules, sampleTimes, absTime
+    paramList = ["interval=", "flowinfo=", "times=", "absolutetime"]
 
     params, restArgs = getopt.getopt(argList, "", paramList)
 
@@ -102,6 +103,9 @@ def parseArgs(argList):
             except:
                 print("plz input an interger after --times=, e.g. --times=10")
                 return -1
+        
+        elif k == "--absolutetime":
+            absTime = True
 
     if sampleTimes == None:
         print("plz input --times parameter")
@@ -119,8 +123,11 @@ if __name__ == "__main__":
         sys.exit(0)
 
     TCPFlowInfo = []
+    timestamp = []
     f = open("/proc/net/tcp")
     for i in range(sampleTimes):
+        if absTime == True:
+            timestamp.append(time.time_ns())
         TCPFlowInfo.append(f.read())
         f.seek(0)
         time.sleep(interval / 1000)
@@ -149,11 +156,13 @@ if __name__ == "__main__":
 
     for oneFlow in results:
         print(oneFlow)
+        rowFormat = "{time:{width}}|{cwnd:6}"
+        width = 21 if absTime else len(str(sampleTimes)) + 2
+        print(rowFormat.format(time="time", width=width, cwnd="cwnd"))
+        print((width + 7) * '-')
         for t in results[oneFlow]:
-            print("%4s" % t, end='')
-        print('')
-        for t in results[oneFlow]:
-            print("%4s" % results[oneFlow][t], end='')
+            time = timestamp[t] if absTime else t
+            print(rowFormat.format(time=time, width=width, cwnd=results[oneFlow][t]))
         print('\n')
 
                     
